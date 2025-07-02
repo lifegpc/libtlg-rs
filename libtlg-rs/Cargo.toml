@@ -1,0 +1,9 @@
+[package]
+name = "libtlg-rs"
+version = "0.1.0"
+description = "Rust version of libtlg"
+edition = "2024"
+license = "MIT"
+
+[dependencies]
+overf = "0.1"
