@@ -1,5 +1,5 @@
 mod arg;
-use std::io::Seek;
+use std::io::{Seek, Write};
 
 fn convert_bgr_to_rgb(data: &mut libtlg_rs::Tlg) {
     match data.color {
@@ -21,6 +21,12 @@ fn convert_bgr_to_rgb(data: &mut libtlg_rs::Tlg) {
     }
 }
 
+fn get_relative_path(input: &str, ext: &str) -> String {
+    let mut pb = std::path::PathBuf::from(input);
+    pb.set_extension(ext);
+    pb.to_string_lossy().to_string()
+}
+
 fn main() {
     let args = arg::Arg::parse();
     let file = std::fs::File::open(&args.input).expect("Failed to open input file");
@@ -29,11 +35,7 @@ fn main() {
         let mut tlg = libtlg_rs::load_tlg(&mut file).expect("Failed to load TLG file");
         let output = match &args.output {
             Some(output) => output.clone(),
-            None => {
-                let mut pb = std::path::PathBuf::from(&args.input);
-                pb.set_extension("png");
-                pb.to_string_lossy().to_string()
-            }
+            None => get_relative_path(&args.input, "png"),
         };
         convert_bgr_to_rgb(&mut tlg);
         let mut output_file = std::fs::File::create(&output).expect("Failed to create output file");
@@ -48,6 +50,20 @@ fn main() {
         writer
             .write_image_data(&tlg.data)
             .expect("Failed to write PNG image data");
+        if !tlg.tags.is_empty() {
+            let mut tags_file = std::fs::File::create(get_relative_path(&output, "tags"))
+                .expect("Failed to create tags file");
+            for (key, value) in &tlg.tags {
+                tags_file.write_all(&key).expect("Failed to write tag key");
+                tags_file
+                    .write_all(b"=")
+                    .expect("Failed to write tag separator");
+                tags_file
+                    .write_all(&value)
+                    .expect("Failed to write tag value");
+                tags_file.write_all(b"\n").expect("Failed to write newline");
+            }
+        }
     } else {
         file.rewind().expect("Failed to rewind file");
     }

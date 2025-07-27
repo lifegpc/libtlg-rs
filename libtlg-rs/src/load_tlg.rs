@@ -205,6 +205,12 @@ pub fn load_tlg<T: Read + Seek>(mut src: T) -> Result<Tlg> {
                     if i >= len {
                         break;
                     }
+                    c = tag[i];
+                    if c != b'=' {
+                        check = false;
+                        break;
+                    }
+                    i += 1;
                     let mut valuelen = 0usize;
                     c = tag[i];
                     ok = true;
