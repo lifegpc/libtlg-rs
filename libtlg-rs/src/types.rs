@@ -37,6 +37,10 @@ pub enum TlgError {
     InvalidFormat,
     /// Unsupported color type
     UnsupportedColorType(u8),
+    /// Index out of range error
+    IndexOutOfRange,
+    /// Unsupported compressed method
+    UnsupportedCompressedMethod(u8),
     /// String type error
     Str(String),
 }
@@ -47,6 +51,10 @@ impl std::fmt::Display for TlgError {
             TlgError::Io(e) => write!(f, "IO Error: {}", e),
             TlgError::InvalidFormat => write!(f, "Invalid TLG format"),
             TlgError::UnsupportedColorType(c) => write!(f, "Unsupported color type: {}", c),
+            TlgError::IndexOutOfRange => write!(f, "Index out of range"),
+            TlgError::UnsupportedCompressedMethod(m) => {
+                write!(f, "Unsupported compressed method: {}", m)
+            }
             TlgError::Str(s) => write!(f, "{}", s),
         }
     }
