@@ -12,6 +12,7 @@ fn load_tlg5<T: Read + Seek>(src: &mut T) -> Result<Tlg> {
     let color = match colors {
         3 => TlgColorType::Bgr24,
         4 => TlgColorType::Bgra32,
+        1 => TlgColorType::Grayscale8,
         _ => return Err(TlgError::UnsupportedColorType(colors)),
     };
     let blockcount = ((height - 1) / blockheight) + 1;
@@ -62,7 +63,10 @@ fn load_tlg5<T: Read + Seek>(src: &mut T) -> Result<Tlg> {
                         outbufp[2] = &outbufp[2][width as usize..];
                         outbufp[3] = &outbufp[3][width as usize..];
                     }
-                    _ => {}
+                    TlgColorType::Grayscale8 => {
+                        tlg5_compose_colors1(current, &prev, &outbufp, width);
+                        outbufp[0] = &outbufp[0][width as usize..];
+                    }
                 },
                 None => match color {
                     TlgColorType::Bgra32 => {
@@ -125,7 +129,19 @@ fn load_tlg5<T: Read + Seek>(src: &mut T) -> Result<Tlg> {
                         outbufp[1] = &outbufp[1][width as usize..];
                         outbufp[2] = &outbufp[2][width as usize..];
                     }
-                    _ => {}
+                    TlgColorType::Grayscale8 => {
+                        let mut current_pos = 0usize;
+                        let mut pb = 0u8;
+                        for x in 0..width as usize {
+                            let b = outbufp[0][x];
+                            wrapping! {
+                                pb += b;
+                            }
+                            current[current_pos] = pb;
+                            current_pos += 1;
+                        }
+                        outbufp[0] = &outbufp[0][width as usize..];
+                    }
                 },
             }
             prevline = Some(current.to_vec());

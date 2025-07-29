@@ -54,6 +54,19 @@ fn tlg6_init_golomb_table() -> [[i8; TLG6_GOLOMB_N_COUNT]; TLG6_GLOBMB_TABLE_SIZ
     table
 }
 
+pub fn tlg5_compose_colors1(outp: &mut [u8], upper: &[u8], buf: &[&[u8]], width: u32) {
+    let mut outpos = 0usize;
+    let mut upper_pos = 0usize;
+    let mut pb = 0u8;
+    for x in 0..width as usize {
+        let b = buf[0][x];
+        wrapping! { pb += b };
+        outp[outpos] = wrapping! { pb + upper[upper_pos]};
+        outpos += 1;
+        upper_pos += 1;
+    }
+}
+
 pub fn tlg5_compose_colors3(outp: &mut [u8], upper: &[u8], buf: &[&[u8]], width: u32) {
     let mut outpos = 0usize;
     let mut upper_pos = 0usize;
