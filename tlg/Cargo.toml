@@ -1,6 +1,6 @@
 [package]
 name = "tlg"
-version = "0.2.1"
+version = "0.2.2"
 description = "Tools to process TLG image file."
 edition = "2024"
 license = "MIT"
