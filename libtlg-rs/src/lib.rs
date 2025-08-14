@@ -1,4 +1,5 @@
 //! A Rust library for processing TLG files.
+#![feature(doc_cfg)]
 mod load_tlg;
 #[cfg(feature = "encode")]
 mod save_tlg;
