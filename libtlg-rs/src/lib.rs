@@ -17,7 +17,7 @@ pub fn is_valid_tlg(data: &[u8]) -> bool {
     if data.len() < 11 {
         return false;
     }
-    data == b"TLG0.0\x00sds\x1a" || data == b"TLG5.0\x00raw\x1a" || data == b"TLG6.0\x00raw\x1a"
+    data.starts_with(b"TLG0.0\x00sds\x1a") || data.starts_with(b"TLG5.0\x00raw\x1a") || data.starts_with(b"TLG6.0\x00raw\x1a")
 }
 
 /// Check if it's a valid TLG.
