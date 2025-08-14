@@ -1,11 +1,17 @@
 [package]
 name = "libtlg-rs"
-version = "0.1.4"
+version = "0.2.0"
 description = "Rust version of libtlg"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/lifegpc/libtlg-rs"
 
+[features]
+encode = []
+
 [dependencies]
 lazy_static = "1"
 overf = "0.1"
+
+[package.metadata.docs.rs]
+all-features = true

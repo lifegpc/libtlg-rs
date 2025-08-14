@@ -43,6 +43,10 @@ pub enum TlgError {
     UnsupportedCompressedMethod(u8),
     /// String type error
     Str(String),
+    #[cfg(feature = "encode")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "encode")))]
+    /// Encoding error
+    EncodeError(String),
 }
 
 impl std::fmt::Display for TlgError {
@@ -56,6 +60,8 @@ impl std::fmt::Display for TlgError {
                 write!(f, "Unsupported compressed method: {}", m)
             }
             TlgError::Str(s) => write!(f, "{}", s),
+            #[cfg(feature = "encode")]
+            TlgError::EncodeError(s) => write!(f, "Encoding error: {}", s),
         }
     }
 }

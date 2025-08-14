@@ -1,4 +1,6 @@
 mod arg;
+#[cfg(feature = "encode")]
+use std::io::BufRead;
 use std::io::{Seek, Write};
 
 fn convert_bgr_to_rgb(data: &mut libtlg_rs::Tlg) {
@@ -66,5 +68,61 @@ fn main() {
         }
     } else {
         file.rewind().expect("Failed to rewind file");
+        #[cfg(feature = "encode")]
+        {
+            let decoder = png::Decoder::new(file);
+            let mut reader = decoder.read_info().expect("Failed to read PNG info");
+            let width = reader.info().width;
+            let height = reader.info().height;
+            if reader.info().bit_depth != png::BitDepth::Eight {
+                panic!("Unsupported bit depth: {:?}", reader.info().bit_depth);
+            }
+            let color_type = match reader.info().color_type {
+                png::ColorType::Rgba => libtlg_rs::TlgColorType::Bgra32,
+                png::ColorType::Rgb => libtlg_rs::TlgColorType::Bgr24,
+                png::ColorType::Grayscale => libtlg_rs::TlgColorType::Grayscale8,
+                _ => panic!("Unsupported color type: {:?}", reader.info().color_type),
+            };
+            let imgsize = width as usize * height as usize * reader.info().color_type.samples();
+            let mut data = vec![0u8; imgsize];
+            reader
+                .next_frame(&mut data)
+                .expect("Failed to read PNG frame");
+            let mut tags = std::collections::HashMap::new();
+            let tags_path = get_relative_path(&args.input, "tags");
+            if std::path::Path::new(&tags_path).exists() {
+                let tags_file = std::fs::File::open(&tags_path).expect("Failed to open tags file");
+                let mut tags_reader = std::io::BufReader::new(tags_file);
+                let mut line = String::new();
+                while tags_reader
+                    .read_line(&mut line)
+                    .expect("Failed to read line")
+                    > 0
+                {
+                    if let Some(eq_pos) = line.find('=') {
+                        let key = line[..eq_pos].trim().as_bytes().to_vec();
+                        let value = line[eq_pos + 1..].trim().as_bytes().to_vec();
+                        tags.insert(key, value);
+                    }
+                    line.clear();
+                }
+            }
+            let mut tlg = libtlg_rs::Tlg {
+                tags,
+                version: 5,
+                width,
+                height,
+                color: color_type,
+                data,
+            };
+            convert_bgr_to_rgb(&mut tlg);
+            let output = match &args.output {
+                Some(output) => output.clone(),
+                None => get_relative_path(&args.input, "tlg"),
+            };
+            let mut output_file =
+                std::fs::File::create(&output).expect("Failed to create output file");
+            libtlg_rs::save_tlg(&tlg, &mut output_file).expect("Failed to save TLG file");
+        }
     }
 }
